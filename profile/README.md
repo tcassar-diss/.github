@@ -2,42 +2,44 @@
 
 All the code and artifacts for my Final Year Project at the [University of Manchester](https://www.manchester.ac.uk/).
 
-## Fine Grained System Call Filtering
+## Fine-Grained System Call Filtering in Linux
 
-- Applying `seccomp` filters to applications is an established practice [](https://www.kernel.org/doc/html/v5.1/userspace-api/seccomp_filter.html).
-- `seccomp` filtering reduces the number of system calls available to an application. This in turn limits what an application can do, and can therefore improve application security.
+### `seccomp` and it's issues
 
-## Motivation
+- System call (syscall) filters are used to secure applications from RCEs,
+  supply chain attacks, and for sandboxing. (https://en.wikipedia.org/wiki/Seccomp) for more.
+- `seccomp` exists, and is [widely used](https://en.wikipedia.org/wiki/Seccomp)
+  to filter syscalls.
+- The issue with `seccomp` is that **applications are large**. As applications
+  grow in size, the set of syscalls they make also tends to grow.
+- This means that a single syscall filter for the whole application **is
+  necessarily permissive**.
+- This **reduces the effectiveness of syscall filtering** to mitigate attacks.
 
-### Software Supply-Chain Attacks
-- Supply chain attacks are becoming increasingly common e.g ([libxz](https://en.wikipedia.org/wiki/XZ_Utils_backdoor) backdoor in February 2024.
-- This, along with the principle of least privilege, would suggest that it is good security practice to only grant a shared library access to the syscalls that it needs.
+### Per-`vma` filtering
 
-### `syso` - analysis tooling
-- To see if the ability to filter system calls for each shared library makes sense, I implemented `syso`.
-- `strace` like tooling which is able to map which shared library made a syscall using BPF (strace cannot trace system call back to shared library)
-- See [github.com/tcassar-diss/syso](https://www.github.com/tcassar-diss/syso) for more information.
+- **Solution**: Use multiple syscall filters for a single process
+- `addrfilter` assigns a filter to each file-backed memory region in the
+  process's address space.
+- This means that **each shared library has its own filter**
 
-### Some test analyses
-- Ran `syso` on redis and nginx (while benchmarks were being run) to get an idea of which system calls were made by which library.
-- Computed some numbers: looked at privilege reduction if each of the shared libraries shown by `pmap` were compromised. 
-- In the **worst case**, redis saw a 37.0% privilge reduction and nginx 23.7%.
-- See raw results + in depth calculations at [github.com/tcassar-diss/syso-analyses](https://www.github.com/tcassar-diss/syso-analyses)
+### Effective?
 
+- Yes. `addrfilter` sees a **37.0% privilege reduction** for `redis`, and
+  **23.7%** for `nginx`.
+- Slow? Depends on what you're doing. High rates of syscalls => more slowdown.
+  Worst seen in testing was a redis microbenchmark with 3B key size which saw a
+  40% reduction in throughput. More details in the
+  [report](https://www.github.com/tcassar-diss/report)
 
-## `addrfilter`
-- `addrfilter` does the address filtering.
+## Try it for yourself?
 
-### Roadmap
-- [x] Apply filter only to relevant PIDs
-- [x] Orchestrate killing a PID from BPF*
-- [x] Walk stack back past `libc` in-kernel
-- [ ] Map non-libc syscall site to relevant syscall whitelist
-- [ ] Kill PID only if syscall number not in whitelist
-- [ ] Assign whitelists to address space in userspace
+Go to [github.com/tcassar-diss/addrfilter](https://www.github.com/tcassar-diss/addrfilter) to try it (requires linux, x86).
 
-- [ ] Demo with example applications
+### Other Repos
 
-- [ ] Move PID kill functionality from userspace -> kernel module
-- [ ] Move address space parsing from userspace -> kernel module
-
+- [syso](https://www.github.com/tcassar-diss/syso): evaluation tool to generate
+  privilege reduction numbers. Can also dynamically generate `addrfilter`
+  whitelists.
+- [report](https://www.github.com/tcassar-diss/report): a formal write up of the
+  project - the dissertation deliverable.
