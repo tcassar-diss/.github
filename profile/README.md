@@ -7,7 +7,7 @@ All the code and artifacts for my Final Year Project at the [University of Manch
 ### `seccomp` and it's issues
 
 - System call (syscall) filters are used to secure applications from RCEs,
-  supply chain attacks, and for sandboxing. (https://en.wikipedia.org/wiki/Seccomp) for more.
+  supply chain attacks, and for sandboxing.
 - `seccomp` exists, and is [widely used](https://en.wikipedia.org/wiki/Seccomp)
   to filter syscalls.
 - The issue with `seccomp` is that **applications are large**. As applications
@@ -27,12 +27,14 @@ All the code and artifacts for my Final Year Project at the [University of Manch
 
 - Yes. `addrfilter` sees a **37.0% privilege reduction** for `redis`, and
   **23.7%** for `nginx`.
-- Slow? Depends on what you're doing. High rates of syscalls => more slowdown.
+
+### Slow?
+- Depends. High rates of syscalls => more slowdown.
   Worst seen in testing was a redis microbenchmark with 3B key size which saw a
   40% reduction in throughput. More details in the
   [report](https://www.github.com/tcassar-diss/report)
 
-## Try it for yourself?
+## Try it for yourself
 
 Go to [github.com/tcassar-diss/addrfilter](https://www.github.com/tcassar-diss/addrfilter) to try it (requires linux, x86).
 
