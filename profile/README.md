@@ -1,4 +1,4 @@
-# tcassar-diss
+# My Dissertation
 
 All the code and artifacts for my Final Year Project at the [University of Manchester](https://www.manchester.ac.uk/).
 
