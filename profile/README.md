@@ -25,14 +25,15 @@ All the code and artifacts for my Final Year Project at the [University of Manch
 
 ### Effective?
 
-- Yes. `addrfilter` sees a **37.0% privilege reduction** for `redis`, and
-  **23.7%** for `nginx`.
+- Yes. `addrfilter` sees a mean privilege reduction of **52.6%** compared to seccomp across our suite of benchmarks
+- See report [§5](https://www.github.com/tcassar-diss/report) for details (PDF available in _releases_)
 
 ### Slow?
-- Depends. High rates of syscalls => more slowdown.
-  Worst seen in testing was a redis microbenchmark with 3B key size which saw a
-  40% reduction in throughput. More details in the
-  [report](https://www.github.com/tcassar-diss/report)
+- Depends. High rates of syscalls => more slowdown
+- Nginx showed 25.1% reduction in throughput, 36.1% in mean latency (using `wrk`)
+- `fio` and OpenMP-based NPB benchmarks showed no slowdown in any metric
+
+So, slowdown is **highly workload dependant**
 
 ## Try it for yourself
 
